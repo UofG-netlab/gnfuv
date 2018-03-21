@@ -8,6 +8,7 @@ import time
 import json
 import threading
 import sys
+import socket
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA_AVG = float(os.getenv('DELTA_AVG', 10))
