@@ -1,0 +1,26 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: gnfuv-temp
+spec:
+  selector:
+    matchLabels:
+      app: gnfuv-temp
+  replicas: 4 # tells deployment to run 2 pods matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      # unlike pod-nginx.yaml, the name is not included in the meta data as a unique name is
+      # generated from the deployment name
+      labels:
+        app: gnfuv-temp
+    spec:
+      containers:
+      - name: gnfuv-temp 
+        image: richardson/gnfuv-temp 
+        env:
+        - name: KAFKA
+          value: "192.168.2.250:9092"
+        - name: DELTA
+          value: "3"
+        securityContext:
+          privileged: true
