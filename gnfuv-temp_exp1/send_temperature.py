@@ -4,6 +4,7 @@ import time
 import json
 import socket
 import Adafruit_DHT
+import numpy
 
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
