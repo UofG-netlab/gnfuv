@@ -8,8 +8,7 @@ import Adafruit_DHT
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
-
-exp=1
+exp=float(os.getenv('EXP', 1))
 
 gpio = 23
 sensor = Adafruit_DHT.DHT11
