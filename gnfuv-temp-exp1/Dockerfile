@@ -10,7 +10,7 @@ RUN apt-get install -y build-essential python-dev
 RUN git clone https://github.com/adafruit/Adafruit_Python_DHT.git
 RUN cd ./Adafruit_Python_DHT && python setup.py install
 RUN pip install --no-cache-dir rpi.gpio
-RUN pip install kafka-python 
+RUN pip install kafka-python numpy 
 
 # Trigger Python script
 CMD ["python", "./send_temperature.py"]

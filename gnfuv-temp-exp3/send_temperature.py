@@ -12,7 +12,8 @@ import collections
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
-exp= float(os.getenv('EXP', 1))
+EXPERIMENT = float(os.getenv('EXP', 3))
+LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
 windowsize=600
@@ -42,11 +43,9 @@ def runmodel(sliding_window,values):
     return local_error,param_sensor
 
 def savetext(message):
-    str_filename = str(socket.gethostname())+'_'+str(exp)+'.csv'
-    f=open(str_filename,'ab')
-    row= str(message)
-    numpy.savetxt(f, [row], fmt='%s')
-    f.close()
+    str_filename = LOGDIR+'/'+str(socket.gethostname())+'_'+str(EXPERIMENT)+'.csv'
+    with open(str_filename,'ab') as f:
+        numpy.savetxt(f, [str(message)], fmt='%s')
 
 def send():
     try:
@@ -83,4 +82,4 @@ try:
         send()
         time.sleep(DELTA)
 except KeyboardInterrupt:
-pass
+    pass
