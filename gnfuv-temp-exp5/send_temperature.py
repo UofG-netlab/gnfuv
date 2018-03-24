@@ -12,7 +12,7 @@ import collections
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
-EXPERIMENT = float(os.getenv('EXP', 3))
+EXPERIMENT = float(os.getenv('EXP', 5))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
@@ -20,7 +20,7 @@ parameters_model=collections.deque(maxlen=2)
 windowsize=6
 sliding_window_values = collections.deque(maxlen=windowsize)
 
-threshold = collections.deque(maxlen=2)
+threshold = 0.1
 send='false'
 
 gpio = 23
@@ -40,32 +40,22 @@ def runmodel(sliding_window,values):
     window_data.columns= ['humidity','temperature']
     query='temperature ~ humidity'
     
-    if len(threshold)==0:
+    if len(parameters_model)==0:
         result = sm.ols(formula=query, data=window_data).fit()
         param_sensor=list(result.params)
-        ypred= result.predict(window_data['humidity'])
-        difference= ypred-window_data['temperature']
-        diff=[]
-        for val in difference:
-            diff.append(val)
-        error= numpy.mean(diff)
-        threshold.append(error)
         parameters_model.append(param_sensor)
         send=True
     else:
         parameters_prev=parameters_model[-1]
-        ypred_new=values[0]*parameters_prev[1]+parameters_prev[0]
-        difference_pred=abs(ypred_new-values[1])
-        if difference_pred>=threshold[-1]:
-            result = sm.ols(formula=query, data=window_data).fit()
-            param_sensor=list(result.params)
-            ypred= result.predict(window_data['humidity'])
-            difference= ypred-window_data['temperature']
-            diff=[]
-            for val in difference:
-                diff.append(val)
-            error= numpy.mean(diff)
-            threshold.append(error)
+        
+        result = sm.ols(formula=query, data=window_data).fit()
+        param_sensor=list(result.params)
+        
+        angle = numpy.arccos(numpy.dot(param_sensor, parameters_prev) / (numpy.linalg.norm(param_sensor) * numpy.linalg.norm(parameters_prev)))
+        w_diff=angle*(180/numpy.pi)
+        delta_er= numpy.nan_to_num(w_diff)
+        
+        if abs(delta_er)>=threshold:
             parameters_model.append(param_sensor)
             send=True
         else:
