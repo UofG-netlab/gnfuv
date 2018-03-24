@@ -16,15 +16,21 @@ EXPERIMENT = float(os.getenv('EXP', 3))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
-windowsize=600
+parameters_model=collections.deque(maxlen=2)
+windowsize=6
 sliding_window_values = collections.deque(maxlen=windowsize)
-threshold = 0.4
+
+threshold = collections.deque(maxlen=2)
 send='false'
 
 gpio = 23
 sensor = Adafruit_DHT.DHT11
 
 def getTempAndHumidity():
+    #import random
+    #hum= random.randint(1,101)
+    #temp= random.randint(1,200) 
+    #return hum,temp
     return Adafruit_DHT.read_retry(sensor, gpio)
 
 def runmodel(sliding_window,values):
@@ -33,14 +39,40 @@ def runmodel(sliding_window,values):
     window_data=pd.DataFrame(data)
     window_data.columns= ['humidity','temperature']
     query='temperature ~ humidity'
-    #model fitting
-    result = sm.ols(formula=query, data=window_data).fit()
-    #model parameters
-    param_sensor=list(result.params)
-    localpred_sens=param_sensor[0]+values[0]*param_sensor[1]
-    actual_value=values[1]
-    local_error=abs(localpred_sens-actual_value)
-    return local_error,param_sensor
+    
+    if len(threshold)==0:
+        result = sm.ols(formula=query, data=window_data).fit()
+        param_sensor=list(result.params)
+        ypred= result.predict(window_data['humidity'])
+        difference= ypred-window_data['temperature']
+        diff=[]
+        for val in difference:
+            diff.append(val)
+        error= numpy.mean(diff)
+        threshold.append(error)
+        parameters_model.append(param_sensor)
+        send=True
+    else:
+        parameters_prev=parameters_model[-1]
+        ypred_new=values[0]*parameters_prev[1]+parameters_prev[0]
+        difference_pred=abs(ypred_new-values[1])
+        if difference_pred>=threshold[-1]:
+            result = sm.ols(formula=query, data=window_data).fit()
+            param_sensor=list(result.params)
+            ypred= result.predict(window_data['humidity'])
+            difference= ypred-window_data['temperature']
+            diff=[]
+            for val in difference:
+                diff.append(val)
+            error= numpy.mean(diff)
+            threshold.append(error)
+            parameters_model.append(param_sensor)
+            send=True
+        else:
+            send=False
+    
+    return send
+    
 
 def savetext(message):
     str_filename = LOGDIR+'/'+str(socket.gethostname())+'_'+str(EXPERIMENT)+'.csv'
@@ -49,17 +81,16 @@ def savetext(message):
 
 def send():
     try:
-       humidity, temperature = getTempAndHumidity()
-       
+       humidity, temperature = getTempAndHumidity()       
        values=[humidity,temperature]
-       #appending window
        sliding_window_values.append(values)
        
-       if len(sliding_window_values_sens)>= windowsize:
-           diff, parameters= runmodel(sliding_window_values,values)
-           if diff>=threshold:
+       if len(sliding_window_values)>= windowsize:
+           sendstatus = runmodel(sliding_window_values,values)
+           if sendstatus==True:
                send='true'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters, 'experiment': exp, 'send_status': send}
+               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               #print(message)
                savetext(message)
                print 'sending', message
                producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -67,7 +98,8 @@ def send():
                producer.flush()
            else:
                send='false'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters, 'experiment': exp, 'send_status': send}
+               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               #print(message)
                savetext(message)
                print 'sending', message
                producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -75,6 +107,7 @@ def send():
                producer.flush()
            
     except Exception as e:
+       # print('error')
        print 'where r u kafka?', e
 
 try:

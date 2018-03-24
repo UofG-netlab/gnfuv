@@ -10,19 +10,24 @@ import numpy
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
-EXPERIMENT = float(os.getenv('EXP', 1))
+EXPERIMENT = float(os.getenv('EXP', 2))
 LOGDIR = str(os.getenv('LOGFDIR', '/tmp'))
 
 #variables needed
 history_values_temp=collections.deque(maxlen=2)
 history_values_hum=collections.deque(maxlen=2)
-threshold = 0.4
+threshold_t = 0.5
+threshold_h=1
 send='false'
 
 gpio = 23
-sensor = Adafruit_DHT.DHT11
+#sensor = Adafruit_DHT.DHT11
 
 def getTempAndHumidity():
+    #import random
+    #hum= random.randint(1,101)
+    #temp= random.randint(1,200) 
+    #return hum,temp
     return Adafruit_DHT.read_retry(sensor, gpio)
 
 def savetext(message):
@@ -33,20 +38,23 @@ def savetext(message):
 def send():
     try:
        humidity, temperature = getTempAndHumidity()
-       delta_temp=abs(temperature-history_values_temp)
-       delta_hum= abs(humidity-history_values_hum)
-       delta_overall=abs(delta_temp-delta_hum)
-       if delta_overall>threshold:
+       history_values_hum.append(humidity)
+       history_values_temp.append(temperature)
+       delta_temp=abs(temperature-history_values_temp[0])
+       delta_hum= abs(humidity-history_values_hum[0])
+       if (delta_temp>=threshold_t) and (delta_hum>=threshold_h):
            send='true'
-           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': exp, 'send_status': send}
+           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
            savetext(message)
+           #print(message)
            print 'sending', message
            producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
            producer.send('sensor-reading', message)
            producer.flush()
        else:
            send='false'
-           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': exp, 'send_status': send}
+           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
+           #print(message)
            savetext(message)
            print 'sending', message
            producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -56,8 +64,8 @@ def send():
        print 'where r u kafka?', e
 
 try:
-    while True:
-        send()
-        time.sleep(DELTA)
+while True:
+    send()
+    time.sleep(DELTA)
 except KeyboardInterrupt:
-pass
+    pass
