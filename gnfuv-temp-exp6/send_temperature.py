@@ -8,19 +8,21 @@ import pandas as pd
 import numpy
 import statsmodels.formula.api as sm
 import collections
+from sklearn.metrics import r2_score
 
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
-EXPERIMENT = float(os.getenv('EXP', 3))
+EXPERIMENT = float(os.getenv('EXP', 6))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
 parameters_model=collections.deque(maxlen=2)
+r2_prev=collections.deque(maxlen=2)
 windowsize=6
 sliding_window_values = collections.deque(maxlen=windowsize)
 
-threshold = collections.deque(maxlen=2)
+threshold = 0.5
 send='false'
 
 gpio = 23
@@ -40,33 +42,27 @@ def runmodel(sliding_window,values):
     window_data.columns= ['humidity','temperature']
     query='temperature ~ humidity'
     
-    if len(threshold)==0:
+    if len(parameters_model)==0:
         result = sm.ols(formula=query, data=window_data).fit()
         param_sensor=list(result.params)
-        ypred= result.predict(window_data['humidity'])
-        difference= ypred-window_data['temperature']
-        diff=[]
-        for val in difference:
-            diff.append(val)
-        error= numpy.mean(diff)
-        threshold.append(error)
         parameters_model.append(param_sensor)
+        r2_prev.append(result.rsquared)
         send=True
     else:
         parameters_prev=parameters_model[-1]
-        ypred_new=values[0]*parameters_prev[1]+parameters_prev[0]
-        difference_pred=abs(ypred_new-values[1])
-        if difference_pred>=threshold[-1]:
+        
+        y_pred=[]
+        for datapoint in range(len(window_data['temperature'])):
+            pred=parameters_prev[0]+window_data.loc[datapoint,'humidity']*parameters_prev[1] 
+            y_pred.append(pred)
+        r2_old=r2_score(window_data['temperature'],y_pred)
+        diff=abs(r2_prev[-1]-r2_old)
+        
+        if diff>=threshold:
             result = sm.ols(formula=query, data=window_data).fit()
             param_sensor=list(result.params)
-            ypred= result.predict(window_data['humidity'])
-            difference= ypred-window_data['temperature']
-            diff=[]
-            for val in difference:
-                diff.append(val)
-            error= numpy.mean(diff)
-            threshold.append(error)
             parameters_model.append(param_sensor)
+            r2_prev.append(result.rsquared)
             send=True
         else:
             send=False
