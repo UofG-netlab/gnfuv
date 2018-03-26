@@ -6,7 +6,7 @@ import socket
 import Adafruit_DHT
 import pandas as pd
 import numpy
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import collections
 
 
@@ -40,10 +40,9 @@ def runmodel(sliding_window,values):
     data = list(sliding_window)
     window_data=pd.DataFrame(data)
     window_data.columns= ['humidity','temperature']
-    query='temperature ~ humidity'
     
     if len(threshold)==0:
-        result = sm.ols(formula=query, data=window_data).fit()
+        result = sm.OLS(window_data['temperature'], window_data['humidity']).fit()
         param_sensor=list(result.params)
         ypred= result.predict(window_data['humidity'])
         difference= ypred-window_data['temperature']
@@ -60,7 +59,7 @@ def runmodel(sliding_window,values):
         difference_pred=abs(ypred_new-values[1])
         difference_prediction.append(difference_pred)
         if difference_pred>=threshold[-1]:
-            result = sm.ols(formula=query, data=window_data).fit()
+            result = sm.OLS(window_data['temperature'], window_data['humidity']).fit()
             param_sensor=list(result.params)
             ypred= result.predict(window_data['humidity'])
             difference= ypred-window_data['temperature']
@@ -83,6 +82,7 @@ def savetext(message):
         numpy.savetxt(f, [str(message)], fmt='%s')
 
 def send():
+    print 'send'
     try:
        humidity, temperature = getTempAndHumidity()       
        values=[humidity,temperature]
