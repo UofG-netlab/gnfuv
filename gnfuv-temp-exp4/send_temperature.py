@@ -110,7 +110,7 @@ def send():
            sendstatus = runmodel(sliding_window_values,values)
            if sendstatus==True:
                send='true'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': threshold[-1] ,'Model recalculation': model_recalc[-1],'Difference Prediction': difference_prediction[-1], 'Parameters new model': parameters_model_new[-1],'Difference Newprediction': difference_new_pred[-1],'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': threshold[-1] ,'Model recalculation': model_recalc[-1],'Difference Prediction': difference_prediction[-1], 'Parameters new model': parameters_model_new[-1],'Difference Newprediction': difference_new_pred[-1],'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message
@@ -119,7 +119,7 @@ def send():
                producer.flush()
            else:
                send='false'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': threshold[-1] ,'Model recalculation': model_recalc[-1],'Difference Prediction': difference_prediction[-1], 'Parameters new model': parameters_model_new[-1],'Difference Newprediction': difference_new_pred[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': threshold[-1] ,'Model recalculation': model_recalc[-1],'Difference Prediction': difference_prediction[-1], 'Parameters new model': parameters_model_new[-1],'Difference Newprediction': difference_new_pred[-1], 'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message
