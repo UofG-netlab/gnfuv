@@ -1,0 +1,111 @@
+Experiment
+	Metadata
+		Username anachris
+		Date 27/03/2018
+		Time 1000
+		Version 2.0
+	~Metadata
+	Requirements
+		Nodes 5
+		Testbed hmod
+		TestbedArea HMOD_Skaramagkas_main_area
+		Location(+37.9979916666667, +23.5816055555556)
+		Duration 10
+		~Requirements
+	Execution
+		ExecutionInfo
+			LayoutWidth 50
+			LayoutHeight 100
+		~ExecutionInfo
+		Node 
+			ID hmod.unizgfer.pladypos.usv.1
+				Route[ 
+					WP<0, +345.70, -22.19, +0.0>
+					WP<1, +354.64, -35.37, +0.0>
+					WP<2, +366.40, -26.89, +0.0>
+					WP<3, +377.23, -4.78, +0.0>
+					WP<4, +384.76, +10.75, +0.0>
+					WP<5, +393.23, +27.69, +0.0>
+					WP<6, +404.52, +40.87, +0.0>
+					WP<7, +420.05, +54.99, +0.0>
+					WP<8, +434.64, +65.34, +0.0>
+					WP<9, +455.34, +80.87, +0.0>
+				] 
+ 				Sensor[
+ 					Time 1 Name WaterTemperature set Activated
+ 					Time 1 Name Depth set Activated
+ 					Time 1 Name BatteryCurrent set Activated
+ 					Time 1 Name Manual set Activated
+ 					Time 1 Name Obstacle set Activated
+ 				]
+
+		~Node 
+		Node 
+			ID hmod.unizgfer.pladypos.usv.3
+				Route[ 
+					WP<0, +340.52, -45.25, +0.0>
+					WP<1, +322.64, -53.25, +0.0>
+					WP<2, +297.23, -71.13, +0.0>
+					WP<3, +273.23, -82.89, +0.0>
+					WP<4, +247.34, -98.42, +0.0>
+					WP<5, +217.23, -109.72, +0.0>
+					WP<6, +178.64, -113.48, +0.0>
+					WP<7, +155.58, -105.01, +0.0>
+				] 
+ 				Sensor[
+ 					Time 1 Name BatteryCurrent set Activated
+ 					Time 1 Name Manual set Activated
+ 					Time 1 Name Obstacle set Activated
+ 					Time 1 Name WaterTemperature set Activated
+ 				]
+
+		~Node 
+		Node 
+			ID hmod.mst.asv.2
+				Route[ 
+					WP<0, +349.46, -40.54, +0.0>
+					WP<1, +338.64, -28.31, +0.0>
+					WP<2, +328.76, -9.48, +0.0>
+					WP<3, +316.52, +4.63, +0.0>
+					WP<4, +311.34, +25.34, +0.0>
+					WP<5, +295.81, +54.05, +0.0>
+					WP<6, +286.40, +67.22, +0.0>
+					WP<7, +278.40, +81.34, +0.0>
+				] 
+
+		~Node 
+		Node 
+			ID hmod.mst.asv.1
+				Route[ 
+					WP<0, +334.40, -36.78, +0.0>
+					WP<1, +319.34, -33.48, +0.0>
+					WP<2, +279.81, -37.72, +0.0>
+					WP<3, +246.40, -44.78, +0.0>
+					WP<4, +205.46, -57.48, +0.0>
+					WP<5, +163.58, -62.66, +0.0>
+					WP<6, +139.11, -77.25, +0.0>
+				] 
+
+		~Node 
+		Node 
+			ID hmod.unizgfer.pladypos.usv.2
+				Route[ 
+					WP<0, +338.17, -4.31, +0.0>
+					WP<1, +346.64, +7.93, +0.0>
+					WP<2, +367.81, +22.05, +0.0>
+					WP<3, +372.52, +45.58, +0.0>
+					WP<4, +376.28, +62.99, +0.0>
+					WP<5, +395.58, +74.75, +0.0>
+					WP<6, +422.87, +86.05, +0.0>
+					WP<7, +439.81, +102.99, +0.0>
+				] 
+ 				Sensor[
+ 					Time 1 Name BatteryCurrent set Activated
+ 					Time 1 Name Manual set Activated
+ 					Time 1 Name Obstacle set Activated
+ 					Time 1 Name WaterTemperature set Activated
+ 				]
+
+		~Node 
+	~Execution	
+~Experiment
