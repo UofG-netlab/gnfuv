@@ -6,7 +6,7 @@ import socket
 import Adafruit_DHT
 import pandas as pd
 import numpy
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import collections
 
 
@@ -41,12 +41,12 @@ def runmodel(sliding_window,values):
     data = list(sliding_window)
     window_data=pd.DataFrame(data)
     window_data.columns= ['humidity','temperature']
-    query='temperature ~ humidity'
     
     if len(parameters_model)==0:
-        result = sm.ols(formula=query, data=window_data).fit()
+        x = sm.add_constant(window_data['humidity'])
+        result = sm.OLS(window_data['temperature'], x).fit()
         param_sensor=list(result.params)
-        ypred= result.predict(window_data['humidity'])
+        ypred= result.predict(x)
         difference= ypred-window_data['temperature']
         diff=[]
         for val in difference:
@@ -66,7 +66,8 @@ def runmodel(sliding_window,values):
         difference_prediction.append(difference_pred)
         if difference_pred>=threshold[-1]:
             model_recalc.append(1)
-            result = sm.ols(formula=query, data=window_data).fit()
+            x = sm.add_constant(window_data['humidity'])
+            result = sm.OLS(window_data['temperature'], x).fit()
             param_sensor=list(result.params)
             parameters_model_new.append(param_sensor)
             #create prediction with new model
@@ -76,7 +77,7 @@ def runmodel(sliding_window,values):
             difference_new_pred.append(difference_newpred)
             #use old avg error
             if difference_newpred >=threshold[-1]:
-                ypred= result.predict(window_data['humidity'])
+                ypred= result.predict(x)
                 difference= ypred-window_data['temperature']
                 diff=[]
                 for val in difference:
