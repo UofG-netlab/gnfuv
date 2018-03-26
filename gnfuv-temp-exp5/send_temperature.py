@@ -6,7 +6,7 @@ import socket
 import Adafruit_DHT
 import pandas as pd
 import numpy
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import collections
 
 
@@ -38,10 +38,10 @@ def runmodel(sliding_window,values):
     data = list(sliding_window)
     window_data=pd.DataFrame(data)
     window_data.columns= ['humidity','temperature']
-    query='temperature ~ humidity'
     
     if len(parameters_model)==0:
-        result = sm.ols(formula=query, data=window_data).fit()
+        x = sm.add_constant(window_data['humidity'])
+        result = sm.OLS(window_data['temperature'], x).fit()
         param_sensor=list(result.params)
         parameters_model.append(param_sensor)
         difference.append(0)
@@ -49,7 +49,8 @@ def runmodel(sliding_window,values):
     else:
         parameters_prev=parameters_model[-1]
         
-        result = sm.ols(formula=query, data=window_data).fit()
+        x = sm.add_constant(window_data['humidity'])
+        result = sm.OLS(window_data['temperature'], x).fit()
         param_sensor=list(result.params)
         
         angle = numpy.arccos(numpy.dot(param_sensor, parameters_prev) / (numpy.linalg.norm(param_sensor) * numpy.linalg.norm(parameters_prev)))
