@@ -13,15 +13,16 @@ DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 2))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
+THRESHOLD_T = float(os.getenv('THRESHOLD_T', 0.1))
+THRESHOLD_H = float(os.getenv('THRESHOLD_H', 0.1))
+
 #variables needed
 history_values_temp=collections.deque(maxlen=2)
 history_values_hum=collections.deque(maxlen=2)
-threshold_t = 0.5
-threshold_h=1
 send='false'
 
 gpio = 23
-#sensor = Adafruit_DHT.DHT11
+sensor = Adafruit_DHT.DHT11
 
 def getTempAndHumidity():
     #import random
@@ -40,11 +41,11 @@ def send():
        humidity, temperature = getTempAndHumidity()
        history_values_hum.append(humidity)
        history_values_temp.append(temperature)
-       delta_temp=abs(temperature-history_values_temp[0])
-       delta_hum= abs(humidity-history_values_hum[0])
-       if (delta_temp>=threshold_t) and (delta_hum>=threshold_h):
+       delta_temp=abs(history_values_temp[-1]-history_values_temp[0])
+       delta_hum= abs(history_values_hum[-1]-history_values_hum[0])
+       if (delta_temp>=THRESHOLD_T) and (delta_hum>=THRESHOLD_H):
            send='true'
-           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
+           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'Delta temperature': delta_temp, 'Delta Humidity': delta_hum, 'Threshold Temperature': THRESHOLD_T, 'Threshold Humidity':THRESHOLD_H,'experiment': EXPERIMENT, 'send_status': send}
            savetext(message)
            #print(message)
            print 'sending', message
@@ -53,7 +54,7 @@ def send():
            producer.flush()
        else:
            send='false'
-           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
+           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'Delta temperature': delta_temp, 'Delta Humidity': delta_hum, 'Threshold Temperature': THRESHOLD_T, 'Threshold Humidity':THRESHOLD_H, 'experiment': EXPERIMENT, 'send_status': send}
            #print(message)
            savetext(message)
            print 'sending', message
@@ -64,8 +65,8 @@ def send():
        print 'where r u kafka?', e
 
 try:
-while True:
-    send()
-    time.sleep(DELTA)
+    while True:
+        send()
+        time.sleep(DELTA)
 except KeyboardInterrupt:
     pass

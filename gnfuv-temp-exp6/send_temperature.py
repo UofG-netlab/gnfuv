@@ -16,13 +16,15 @@ DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 6))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
+WINDOWSIZE = int(os.getenv('WIND', 30))
+THRESHOLD = float(os.getenv('THRESHOLD', 0.1))
+
 #variables needed
 parameters_model=collections.deque(maxlen=2)
 r2_prev=collections.deque(maxlen=2)
-windowsize=6
-sliding_window_values = collections.deque(maxlen=windowsize)
-
-threshold = 0.5
+sliding_window_values = collections.deque(maxlen=WINDOWSIZE)
+difference=collections.deque(maxlen=2)
+r2_old_push=collections.deque(maxlen=2)
 send='false'
 
 gpio = 23
@@ -47,6 +49,8 @@ def runmodel(sliding_window,values):
         param_sensor=list(result.params)
         parameters_model.append(param_sensor)
         r2_prev.append(result.rsquared)
+        r2_old_push.append(0)
+        difference.append(0)
         send=True
     else:
         parameters_prev=parameters_model[-1]
@@ -57,8 +61,10 @@ def runmodel(sliding_window,values):
             y_pred.append(pred)
         r2_old=r2_score(window_data['temperature'],y_pred)
         diff=abs(r2_prev[-1]-r2_old)
+        r2_old_push.append(r2_old)
+        difference.append(diff)
         
-        if diff>=threshold:
+        if diff>=THRESHOLD:
             result = sm.ols(formula=query, data=window_data).fit()
             param_sensor=list(result.params)
             parameters_model.append(param_sensor)
@@ -81,11 +87,11 @@ def send():
        values=[humidity,temperature]
        sliding_window_values.append(values)
        
-       if len(sliding_window_values)>= windowsize:
+       if len(sliding_window_values)>= WINDOWSIZE:
            sendstatus = runmodel(sliding_window_values,values)
            if sendstatus==True:
                send='true'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': THRESHOLD , 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message
@@ -94,8 +100,8 @@ def send():
                producer.flush()
            else:
                send='false'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
-               #print(message)
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Windowsize': WINDOWSIZE, 'Threshold': THRESHOLD , 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               print(message)
                savetext(message)
                print 'sending', message
                producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
