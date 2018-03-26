@@ -10,7 +10,7 @@ import numpy
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 1))
-LOGDIR = str(os.getenv('LOGFDIR', '/tmp'))
+LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 gpio = 23
 sensor = Adafruit_DHT.DHT11

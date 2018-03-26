@@ -10,7 +10,7 @@ RUN apt-get install -y build-essential python-dev python-numpy python-statsmodel
 RUN git clone https://github.com/adafruit/Adafruit_Python_DHT.git
 RUN cd ./Adafruit_Python_DHT && python setup.py install
 RUN pip install --no-cache-dir rpi.gpio
-RUN pip install kafka-python numpy statmodels 
+RUN pip install kafka-python
 
 # Trigger Python script
 CMD ["python", "./send_temperature.py"]
