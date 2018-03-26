@@ -11,7 +11,7 @@ import numpy
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 2))
-LOGDIR = str(os.getenv('LOGFDIR', '/tmp'))
+LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
 history_values_temp=collections.deque(maxlen=2)
@@ -44,7 +44,7 @@ def send():
        delta_hum= abs(humidity-history_values_hum[0])
        if (delta_temp>=threshold_t) and (delta_hum>=threshold_h):
            send='true'
-           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
+           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
            savetext(message)
            #print(message)
            print 'sending', message
@@ -53,7 +53,7 @@ def send():
            producer.flush()
        else:
            send='false'
-           message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
+           message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT, 'send_status': send}
            #print(message)
            savetext(message)
            print 'sending', message
