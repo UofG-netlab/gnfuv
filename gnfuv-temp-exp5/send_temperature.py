@@ -14,7 +14,7 @@ KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 5))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
-WINDOWSIZE = float(os.getenv('WIND', 30))
+WINDOWSIZE = int(os.getenv('WIND', 30))
 THRESHOLD = float(os.getenv('THRESHOLD', 0.1))
 
 #variables needed
