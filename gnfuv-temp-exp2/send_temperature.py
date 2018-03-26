@@ -22,7 +22,7 @@ history_values_hum=collections.deque(maxlen=2)
 send='false'
 
 gpio = 23
-#sensor = Adafruit_DHT.DHT11
+sensor = Adafruit_DHT.DHT11
 
 def getTempAndHumidity():
     #import random
@@ -41,8 +41,8 @@ def send():
        humidity, temperature = getTempAndHumidity()
        history_values_hum.append(humidity)
        history_values_temp.append(temperature)
-       delta_temp=abs(temperature-history_values_temp[0])
-       delta_hum= abs(humidity-history_values_hum[0])
+       delta_temp=abs(history_values_temp[-1]-history_values_temp[0])
+       delta_hum= abs(history_values_hum[-1]-history_values_hum[0])
        if (delta_temp>=THRESHOLD_T) and (delta_hum>=THRESHOLD_H):
            send='true'
            message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'Delta temperature': delta_temp, 'Delta Humidity': delta_hum, 'Threshold Temperature': THRESHOLD_T, 'Threshold Humidity':THRESHOLD_H,'experiment': EXPERIMENT, 'send_status': send}
@@ -65,8 +65,8 @@ def send():
        print 'where r u kafka?', e
 
 try:
-while True:
-    send()
-    time.sleep(DELTA)
+    while True:
+        send()
+        time.sleep(DELTA)
 except KeyboardInterrupt:
     pass
