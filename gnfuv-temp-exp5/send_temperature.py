@@ -17,10 +17,11 @@ LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
 #variables needed
 parameters_model=collections.deque(maxlen=2)
-windowsize=6
+windowsize=30
 sliding_window_values = collections.deque(maxlen=windowsize)
 
 threshold = 0.1
+difference=collections.deque(maxlen=2)
 send='false'
 
 gpio = 23
@@ -44,6 +45,7 @@ def runmodel(sliding_window,values):
         result = sm.ols(formula=query, data=window_data).fit()
         param_sensor=list(result.params)
         parameters_model.append(param_sensor)
+        difference.append(0)
         send=True
     else:
         parameters_prev=parameters_model[-1]
@@ -54,6 +56,8 @@ def runmodel(sliding_window,values):
         angle = numpy.arccos(numpy.dot(param_sensor, parameters_prev) / (numpy.linalg.norm(param_sensor) * numpy.linalg.norm(parameters_prev)))
         w_diff=angle*(180/numpy.pi)
         delta_er= numpy.nan_to_num(w_diff)
+        
+        difference.append(delta_er)
         
         if abs(delta_er)>=threshold:
             parameters_model.append(param_sensor)
@@ -79,7 +83,7 @@ def send():
            sendstatus = runmodel(sliding_window_values,values)
            if sendstatus==True:
                send='true'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Angle difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message
@@ -88,7 +92,7 @@ def send():
                producer.flush()
            else:
                send='false'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'Angle difference': difference[-1],'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message

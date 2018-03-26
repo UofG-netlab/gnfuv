@@ -91,7 +91,7 @@ def send():
            sendstatus = runmodel(sliding_window_values,values)
            if sendstatus==True:
                send='true'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
                #print(message)
                savetext(message)
                print 'sending', message
@@ -100,7 +100,7 @@ def send():
                producer.flush()
            else:
                send='false'
-               message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
+               message = {'time': time.time(),'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'parameters': parameters_model[-1], 'R2_current': r2_prev[-1],'R2_old': r2_old_push[-1] ,'difference': difference[-1], 'experiment': EXPERIMENT, 'send_status': send}
                print(message)
                savetext(message)
                print 'sending', message
