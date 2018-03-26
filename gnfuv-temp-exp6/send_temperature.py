@@ -16,13 +16,13 @@ DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 6))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
+WINDOWSIZE = float(os.getenv('WIND', 30))
+THRESHOLD = float(os.getenv('THRESHOLD', 0.1))
+
 #variables needed
 parameters_model=collections.deque(maxlen=2)
 r2_prev=collections.deque(maxlen=2)
-windowsize=30
-sliding_window_values = collections.deque(maxlen=windowsize)
-
-threshold = 0.1
+sliding_window_values = collections.deque(maxlen=WINDOWSIZE)
 difference=collections.deque(maxlen=2)
 r2_old_push=collections.deque(maxlen=2)
 send='false'
@@ -64,7 +64,7 @@ def runmodel(sliding_window,values):
         r2_old_push.append(r2_old)
         difference.append(diff)
         
-        if diff>=threshold:
+        if diff>=THRESHOLD:
             result = sm.ols(formula=query, data=window_data).fit()
             param_sensor=list(result.params)
             parameters_model.append(param_sensor)
@@ -87,7 +87,7 @@ def send():
        values=[humidity,temperature]
        sliding_window_values.append(values)
        
-       if len(sliding_window_values)>= windowsize:
+       if len(sliding_window_values)>= WINDOWSIZE:
            sendstatus = runmodel(sliding_window_values,values)
            if sendstatus==True:
                send='true'
