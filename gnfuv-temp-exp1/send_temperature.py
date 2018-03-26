@@ -5,7 +5,7 @@ import json
 import socket
 import Adafruit_DHT
 import numpy
-
+import time
 
 KAFKA = os.getenv('KAFKA', '192.168.2.250:9092')
 DELTA = float(os.getenv('DELTA', 1))
@@ -26,7 +26,7 @@ def savetext(message):
 def send():
     try:
        humidity, temperature = getTempAndHumidity()
-       message = {'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT}
+       message = {'time': time.time(), 'device': socket.gethostname(), 'temperature': temperature, 'humidity': humidity, 'experiment': EXPERIMENT}
        savetext(message)
        print 'sending', message
        producer = KafkaProducer(bootstrap_servers=KAFKA, value_serializer=lambda v: json.dumps(v).encode('utf-8'))
