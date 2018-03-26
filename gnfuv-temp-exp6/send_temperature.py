@@ -6,7 +6,7 @@ import socket
 import Adafruit_DHT
 import pandas as pd
 import numpy
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import collections
 
 
@@ -48,10 +48,10 @@ def runmodel(sliding_window,values):
     data = list(sliding_window)
     window_data=pd.DataFrame(data)
     window_data.columns= ['humidity','temperature']
-    query='temperature ~ humidity'
     
     if len(parameters_model)==0:
-        result = sm.ols(formula=query, data=window_data).fit()
+        x = sm.add_constant(window_data['humidity'])
+        result = sm.OLS(window_data['temperature'], x).fit()
         param_sensor=list(result.params)
         parameters_model.append(param_sensor)
         r2_prev.append(result.rsquared)
@@ -71,7 +71,9 @@ def runmodel(sliding_window,values):
         difference.append(diff)
         
         if diff>=THRESHOLD:
-            result = sm.ols(formula=query, data=window_data).fit()
+            
+            x = sm.add_constant(window_data['humidity'])
+            result = sm.OLS(window_data['temperature'], x).fit()
             param_sensor=list(result.params)
             parameters_model.append(param_sensor)
             r2_prev.append(result.rsquared)
