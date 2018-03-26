@@ -15,7 +15,7 @@ DELTA = float(os.getenv('DELTA', 1))
 EXPERIMENT = float(os.getenv('EXP', 3))
 LOGDIR = str(os.getenv('LOGDIR', '/tmp'))
 
-WINDOWSIZE = int(os.getenv('WIND', 30))
+WINDOWSIZE = int(os.getenv('WIND', 3))
 
 #variables needed
 parameters_model=collections.deque(maxlen=2)
@@ -42,15 +42,17 @@ def runmodel(sliding_window,values):
     window_data.columns= ['humidity','temperature']
     
     if len(threshold)==0:
-        result = sm.OLS(window_data['temperature'], window_data['humidity']).fit()
+        x = sm.add_constant(window_data['humidity'])
+        result = sm.OLS(window_data['temperature'], x).fit()
         param_sensor=list(result.params)
-        ypred= result.predict(window_data['humidity'])
+        ypred= result.predict(x)
         difference= ypred-window_data['temperature']
         diff=[]
         for val in difference:
             diff.append(val)
         error= numpy.mean(diff)
         threshold.append(error)
+        difference_prediction.append(0)
         parameters_model.append(param_sensor)
         send=True
     else:
@@ -59,9 +61,10 @@ def runmodel(sliding_window,values):
         difference_pred=abs(ypred_new-values[1])
         difference_prediction.append(difference_pred)
         if difference_pred>=threshold[-1]:
-            result = sm.OLS(window_data['temperature'], window_data['humidity']).fit()
+            x = sm.add_constant(window_data['humidity'])
+            result = sm.OLS(window_data['temperature'],x).fit()
             param_sensor=list(result.params)
-            ypred= result.predict(window_data['humidity'])
+            ypred= result.predict(x)
             difference= ypred-window_data['temperature']
             diff=[]
             for val in difference:
@@ -82,7 +85,7 @@ def savetext(message):
         numpy.savetxt(f, [str(message)], fmt='%s')
 
 def send():
-    print 'send'
+   # print 'send'
     try:
        humidity, temperature = getTempAndHumidity()       
        values=[humidity,temperature]
